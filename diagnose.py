@@ -417,7 +417,7 @@ def predict22(filename,i,big,m10,m11,m12,m13,m14,path,second_x,second_y,first_x,
     
     plt.savefig('scores_par.png')
     plt.show()
-    my_img = Image.PhotoImage(file='scores_par.png')
+ #   my_img = Image.PhotoImage(file='scores_par.png')
 
 numlist=[]#装四维矩阵
 def predict33(filename,i,big,m10,m11,m12,m13,m14,path,second_x,second_y,first_x,first_y):
@@ -435,11 +435,11 @@ def predict33(filename,i,big,m10,m11,m12,m13,m14,path,second_x,second_y,first_x,
     num_list.append(m14.reshape(1,32,32,5))
     numlist=[]
     numlist=np.stack(num_list,axis=4)
-    
 #    model = model_from_json(open('C:\\Users\\85436\\Desktop\\毕设\\keras\\Keras\\pre\\fusion_model_三分类\\[\'E5\', \'F5\', \'G5\', \'H5\', \'I5\']concat_1_architecture.json').read())  
 #    model.load_weights('C:\\Users\\85436\\Desktop\\毕设\\keras\\Keras\\pre\\fusion_model_三分类\\[\'E5\', \'F5\', \'G5\', \'H5\', \'I5\']concat_1_weights.h5')
     model = model_from_json(open('[\'E5\', \'F5\', \'G5\', \'H5\', \'I5\']_1_architecture.json').read())  
     model.load_weights('[\'E5\', \'F5\', \'G5\', \'H5\', \'I5\']_1_weights.h5')
+
 #    model.summary()
  # get the symbolic outputs of each "key" layer (we gave them unique names).
 #    layer_dict = dict([(layer.name, layer) for layer in model.layers[0:]])
@@ -476,7 +476,7 @@ def predict33(filename,i,big,m10,m11,m12,m13,m14,path,second_x,second_y,first_x,
     
     plt.savefig('scores_par.png')
     plt.show()
-    my_img = Image.PhotoImage(file='scores_par.png')
+  #  my_img = Image.PhotoImage(file='scores_par.png')
 
     
     
@@ -499,7 +499,6 @@ def predict33(filename,i,big,m10,m11,m12,m13,m14,path,second_x,second_y,first_x,
 #    l1.create_image(50,100,image =my_img1)
 #    my_img2 = PhotoImage(file='C:\\Users\\85436\\Desktop\\毕设\\keras\\Keras\\pre\\img\\conv2feature.png')
 #    l1.create_image(80,80,image =my_img2)
-    root.mainloop()
 #    
     
            
