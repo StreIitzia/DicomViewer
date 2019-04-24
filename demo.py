@@ -21,6 +21,7 @@ import os
 from tkinter.filedialog import askdirectory
 import matplotlib.pyplot as plt
 import tensorflow as tf
+from diagnose import predict22,predict33
 
 def loadFile(filename):
     ds = sitk.ReadImage(filename)
@@ -80,8 +81,8 @@ dicom1=str()
 #config.gpu_options.allow_growth = True
 #session = tf.Session(config=config)
 
-def first(event):
-    global first_x,first_y,flag,flag1,temp_x,temp_y
+def first(event):#第一次点下鼠标
+    global first_x,first_y,flag,flag1,temp_x,temp_y#flag是否为第一次点击，flag1代表是否按住鼠标
     if(flag==0):         
         first_x=event.x
         first_y=event.y
@@ -92,7 +93,7 @@ def first(event):
             temp_y=event.y
             
         
-def second(event):
+def second(event):#点下并拖动鼠标
     global second_x,second_y,l,first_x,first_y,rect,dragflag,flag,temp_x,temp_y,flag1
     if (flag==0):  
         dragflag=1
@@ -123,7 +124,7 @@ def second(event):
                 rect=l.create_rectangle(first_x+event.x-temp_x, first_y+event.y-temp_y, second_x+event.x-temp_x, second_y+event.y-temp_y,outline='red')
 
 
-def final(event):
+def final(event):#松开鼠标
     global dragflag,flag,rect,second_x,second_y,l,first_x,first_y,temp_x,temp_y,flag1,existflag
     existflag=1
     if (flag==0):       
@@ -145,9 +146,7 @@ def final(event):
         temp_y=0
         dragflag=0
         flag1=0
-
-            
-            
+         
 def haress(wc1,ww1,a):
     wc=(wc1/4096)*255
     ww=(ww1/4096)*255
@@ -168,8 +167,8 @@ wc1.set(1585)
 ww1=tk.IntVar()
 ww1.set(1585)
 def show():
-    global filename
-    img_array=loadFile(filename)
+    global filename,i
+    img_array=loadFile(filename[i])
     a = np.matrix(img_array)
     a=haress(s2.get(),s3.get(),a)
     im=Image.fromarray(a)
@@ -181,65 +180,37 @@ def processWheel(event):
     if(timeflag==1):
         if (event.delta > 0 and i<big):
             i=i+1
-            if(i==0):
-                i=1
-            if(i==(big+1)):
-                i=1
-            if(i<10 and small==1 and smallflag==0):
-                f=d+'_'+"0"+str((i+small-1))+e
-            elif(i<10 and small==1 and smallflag==1):
-                f=d+'_'+"00"+str((i+small-1))+e
-            elif((i+small-1)<100 and  small==1 and smallflag==1):
-                f=d+'_'+"0"+str((i+small-1))+e
-            elif((i+small-1)<100 and small>1):
-                f=d+'_'+"0"+str((i+small-1))+e
-            else:
-                f=d+'_'+str((i+small-1))+e
-            filename=path+"\\\\"+f
             im=show()
             l.delete(dicom)
             dicom=l.create_image(256,256,image = im)
-            var.set(str(i))
-            l.create_text(50,10,text = var.get()+'/'+str(big),  fill = 'white')
+            var.set(str(i+1))
+            l.create_text(50,10,text = var.get()+'/'+str(big+1),  fill = 'white')
         
             l.delete(rect)
             rect=l.create_rectangle(first_x, first_y, second_x, second_y,outline='green') 
-        elif(event.delta < 0 and i>1):
-            i=(i-1)%big
-            if(i==0):
-                i=big
-            if(i<10 and small==1 and smallflag==0):
-                f=d+'_'+"0"+str((i+small-1))+e
-            elif(i<10 and small==1 and smallflag==1):
-                f=d+'_'+"00"+str((i+small-1))+e
-            elif((i+small-1)<100 and  small==1 and smallflag==1):
-                f=d+'_'+"0"+str((i+small-1))+e
-            elif((i+small-1)<100 and small>1):
-                f=d+'_'+"0"+str((i+small-1))+e
-            else:
-                f=d+'_'+str((i+small-1))+e
-            filename=path+"\\\\"+f
+        elif(event.delta < 0 and i>=1):
+            i=i-1
             im=show()
             l.delete(dicom)
             dicom=l.create_image(256,256,image = im)
-            var.set(str(i))
-            l.create_text(50,10,text = var.get()+'/'+str(big),  fill = 'white')      
+            var.set(str(i+1))
+            l.create_text(50,10,text = var.get()+'/'+str(big+1),  fill = 'white')      
             l.delete(rect)
             rect=l.create_rectangle(first_x, first_y, second_x, second_y,outline='green')
         
         
-def change(event):
+def change(event):#改变窗位窗宽对图像造成的影响
     global im,l,dicom,second_x,second_y,l,first_x,first_y,rect,timeflag,var,i
     if(timeflag==1):
         im=show()
         l.delete(dicom)
         dicom=l.create_image(256,256,image = im)
-        var.set(str(i))
-        l.create_text(50,10,text = var.get()+'/'+str(big),  fill = 'white')  
+        var.set(str(i+1))
+        l.create_text(50,10,text = var.get()+'/'+str(big+1),  fill = 'white')  
         l.delete(rect)
         rect=l.create_rectangle(first_x, first_y, second_x, second_y,outline='green')
 
-def delete():
+def delete():#清除
     global l,second_x,second_y,l,first_x,first_y,rect,dragflag,flag,flag1,temp_x,temp_y,existflag
     first_x=0
     first_y=0
@@ -253,25 +224,7 @@ def delete():
     l.delete(rect)
     existflag=0
     
-def cut():
-    global existflag,second_x,second_y,l,first_x,first_y,filename,i,l1,dragflag,flag,flag1,temp_x,temp_y,root,dicom1
-    if(existflag==1):
-        img_array=loadFile(filename)
-        a = np.matrix(img_array)
-        #a=haress(s2.get(),s3.get(),a)
-        if(first_x<second_x and first_y<second_y):
-            b=a[first_y:second_y,first_x:second_x]
-        if(second_x<first_x and first_y<second_y):
-            b=a[first_y:second_y,second_x:first_x]
-        if(second_x<first_x and second_y<first_y):
-            b=a[second_y:first_y,second_x:first_x]
-        if(first_x<second_x and second_y<first_y):
-            b=a[second_y:first_y,first_x:second_x]
-        im=Image.fromarray(b)
-        tkimg=ImageTk.PhotoImage(im)
-        l1.delete(dicom1)
-        dicom1=l1.create_image(256,256,image = tkimg)
-        root.mainloop()
+
 def save1():
     global save_z1,i,save_z2
     if(save_z1==i):
@@ -289,7 +242,7 @@ def save2():
     if(save_z1==save_z2):
         tk.messagebox.showinfo('提示', '两个位置重复')
 def save3():
-    global save_x1,save_y1,save_x2,save_y2,second_x,second_y,l,first_x,first_y,flag,save_filename,filename
+    global save_x1,save_y1,save_x2,save_y2,second_x,second_y,l,first_x,first_y,flag,save_filename,filename,i
     if(flag==0):
         tk.messagebox.showinfo('提示', '未选取范围')
     else:
@@ -297,7 +250,7 @@ def save3():
         save_y1=first_y
         save_x2=second_x
         save_y2=second_y
-        save_filename=filename
+        save_filename=filename[i]
         
 DATA=[('路径','z1','z2','x1','y1','x2','y2','分化')
    ]
@@ -329,210 +282,209 @@ def get_filename(path,filetype):
 def get():
     global path,filetype,filename,big,d,e,i,timeflag,l,root,dicom,var,small,smallflag
     
-    path=askdirectory()
-    path=path.replace("/","\\\\")
-    a=get_filename(path,filetype)
-    b=a.pop()#替换末班
+    filename=[]
+    path=askdirectory()#tkinter 选择路径
+#    for root1, dirs, files in os.walk(path,topdown=False):
+#        print(dirs)
     
-    c=a.pop(0)
-    rule_name = r'_(\d+).d'
-    compile_name = re.compile(rule_name, re.M)
-    res_name = compile_name.findall(c)
-    if(res_name[0]=='001' or res_name[0]=='002' or res_name[0]=='003' or res_name[0]=='004' or res_name[0]=='005' or res_name[0]=='006' or res_name[0]=='007' or res_name[0]=='008' or res_name[0]=='009'):
-        smallflag=1
-    else:
-        smallflag=0
-    small=int(res_name[0])
+#    parent_path=os.path.dirname(path)
+#    lll=os.listdir(parent_path)
+#    for i7 in lll:
+#        n3,ext=os.path.splitext(i7)
+#        if n3.find('E')>=0:#寻找文件夹中含特定字符的文件夹名
+#            print(parent_path+'/'+i7)
     
+    try:
+        result=os.listdir(path)
+    except(FileNotFoundError):
+        print("没有选择文件夹")
+        return
+    result1=[]
+    for element in result:
+        element=path+'/'+element
+        result1.append(element)
+    #print(result1)
+    filename=result1
     
-    rule_name = r'_(\d+).d'
-    compile_name = re.compile(rule_name, re.M)
-    res_name = compile_name.findall(b)
+#    fer=[]
+#    fer1=[]
+#    fer2=[]
+#    fer3=[]
+#    fer4=[]
+#    parent_path=os.path.dirname(path)
+#    lll=os.listdir(parent_path)
+#    for i7 in lll:
+#        n3,ext=os.path.splitext(i7)
+#        if n3.find('E')>=0:#寻找文件夹中含特定字符的文件夹名
+#            path1=parent_path+'/'+i7
+#            result00=os.listdir(path1)
+#            resulttemp00=[]
+#            for element00 in result00:
+#                element00=path1+'/'+element00
+#                resulttemp00.append(element00)
+#            for v in range(5,10):
+#                fer.append(resulttemp00[v])
+#        if n3.find('F')>=0:#寻找文件夹中含特定字符的文件夹名
+#            path1=parent_path+'/'+i7
+#            result00=os.listdir(path1)
+#            resulttemp00=[]
+#            for element00 in result00:
+#                element00=path1+'/'+element00
+#                resulttemp00.append(element00)
+#            for v in range(5,10):
+#                fer1.append(resulttemp00[v])
+#        if n3.find('G')>=0:#寻找文件夹中含特定字符的文件夹名
+#            path1=parent_path+'/'+i7
+#            result00=os.listdir(path1)
+#            resulttemp00=[]
+#            for element00 in result00:
+#                element00=path1+'/'+element00
+#                resulttemp00.append(element00)
+#            for v in range(5,10):
+#                fer2.append(resulttemp00[v])
+#        if n3.find('H')>=0:#寻找文件夹中含特定字符的文件夹名
+#            path1=parent_path+'/'+i7
+#            result00=os.listdir(path1)
+#            resulttemp00=[]
+#            for element00 in result00:
+#                element00=path1+'/'+element00
+#                resulttemp00.append(element00)
+#            for v in range(5,10):
+#                fer3.append(resulttemp00[v])
+#        if n3.find('I')>=0:#寻找文件夹中含特定字符的文件夹名
+#            path1=parent_path+'/'+i7
+#            result00=os.listdir(path1)
+#            resulttemp00=[]
+#            for element00 in result00:
+#                element00=path1+'/'+element00
+#                resulttemp00.append(element00)
+#            for v in range(5,10):
+#                fer4.append(resulttemp00[v])
 
-
-    big = int(res_name[0])-small+1
     
-    
-    rule_name = r'^(.*)_'
-    compile_name = re.compile(rule_name, re.M)
-    res_name1 = compile_name.findall(b)
-
-    d=res_name1[0]
-    e=b[-4:]
-    
-    if(smallflag==0):
-        f=d+'_'+str((big+small-1))+e
-        filename=path+"\\\\"+f
-    else:
-        f=d+'_'+'0'+str((big+small-1))+e
-        filename=path+"\\\\"+f
-    
-    i=big
+    i=0#现在位于filename的第几张图片
+    big=len(result)-1#打开的文件夹有几个元素
     im=show()
     timeflag=1
     l.delete(dicom)
     dicom=l.create_image(256,256,image = im)
-    var.set(str(i))
-    l.create_text(50,10,text = var.get()+'/'+str(big),  fill = 'white')  
+    var.set(str(i+1))
+    l.create_text(50,10,text = var.get()+'/'+str(big+1),  fill = 'white')  
     root.mainloop()
 
-def getmaxandmin(filelist):#获取所选区域整个文件夹所有图片该区域的灰度最大最小值
-    global second_x,second_y,first_x,first_y
-    maxqueue=[]
-    minqueue=[]
-    b = np.matrix([])
-    for i1 in range(0,len(filelist)):
-        img_array=loadFile(filelist[i1])
-        a = np.matrix(img_array)
-        #a=haress(s2.get(),s3.get(),a)
-        if(first_x<second_x and first_y<second_y):
-            b=a[first_y:second_y,first_x:second_x]
-        if(second_x<first_x and first_y<second_y):
-            b=a[first_y:second_y,second_x:first_x]
-        if(second_x<first_x and second_y<first_y):
-            b=a[second_y:first_y,second_x:first_x]
-        if(first_x<second_x and second_y<first_y):
-            b=a[second_y:first_y,first_x:second_x]
-        maxqueue.append(b.max())
-        minqueue.append(b.min())
-        maxValue=max(maxqueue)-100
-        minValue=min(minqueue)
-    return maxValue,minValue
-
-
-def FindX(findlist,maxValue,minValue):#调整矩阵大小至选取的范围，归一化并压缩成32*32
-    global second_x,second_y,first_x,first_y
-    Matrix=[]
-    fff=np.matrix([])
-    b=np.matrix([])
-    for ff1 in range(0,5):      
-        img_array=loadFile(findlist[ff1])
-        a=np.matrix(img_array)
-        if(first_x<second_x and first_y<second_y):
-            b=a[first_y:second_y,first_x:second_x]
-        if(second_x<first_x and first_y<second_y):
-            b=a[first_y:second_y,second_x:first_x]
-        if(second_x<first_x and second_y<first_y):
-            b=a[second_y:first_y,second_x:first_x]
-        if(first_x<second_x and second_y<first_y):
-            b=a[second_y:first_y,first_x:second_x]
-        ff=np.matrix(b)   
-        fff=(ff-minValue)/(maxValue-minValue)
-        ffff=np.matrix(fff)
-        
-        
-        im1=Image.fromarray(ffff)
-        img = im1.resize((32,32))
-        fff1=np.asarray(img)
-        matrix = fff1
-        
-        
-        Matrix.append(matrix)
-    return Matrix
-
-def showtest(findlist):
-    global second_x,second_y,first_x,first_y,l1,dicom1,root
-    b=np.matrix([])
-    img_array=loadFile(findlist[0])
-    a=np.matrix(img_array)
-    if(first_x<second_x and first_y<second_y):
-        b=a[first_y:second_y,first_x:second_x]
-    if(second_x<first_x and first_y<second_y):
-        b=a[first_y:second_y,second_x:first_x]
-    if(second_x<first_x and second_y<first_y):
-        b=a[second_y:first_y,second_x:first_x]
-    if(first_x<second_x and second_y<first_y):
-        b=a[second_y:first_y,first_x:second_x]
-    ff=np.matrix(b)
-#    fffffff1=ff.resize((32, 32))
-    
-    im1=Image.fromarray(ff)
-    img = im1.resize((32,32))
-    fff1=np.asarray(img)
-    
-    
-    im=Image.fromarray(fff1)
-    tkimg=ImageTk.PhotoImage(im)
-    l1.delete("all")
-    l1.create_image(256,256,image =tkimg)
-    root.mainloop()
-
-
-    
-def curb():
-    global existflag,second_x,second_y,l,first_x,first_y,filename,i,big,d,e,matrix,i,small,path
-    save3();
-    maxqueue=[]
-    minqueue=[]
-    fff=np.matrix([])
-    img_array=loadFile(filename)#得到原始图像
-    a = np.matrix(img_array)
-
-    if(first_x<second_x and first_y<second_y):
-        b1=a[first_y:second_y,first_x:second_x]
-    if(second_x<first_x and first_y<second_y):
-        b1=a[first_y:second_y,second_x:first_x]
-    if(second_x<first_x and second_y<first_y):
-        b1=a[second_y:first_y,second_x:first_x]
-    if(first_x<second_x and second_y<first_y):
-        b1=a[second_y:first_y,first_x:second_x]
-    
-    
-    for i2 in range(1,big+1):
-        if(i2<10 and small==1 and smallflag==0):
-            f=d+'_'+"0"+str((i2+small-1))+e
-        elif(i2<10 and small==1 and smallflag==1):
-            f=d+'_'+"00"+str((i2+small-1))+e
-        elif((i2+small-1)<100 and  small==1 and smallflag==1):
-            f=d+'_'+"0"+str((i2+small-1))+e
-        elif((i2+small-1)<100 and small>1):
-            f=d+'_'+"0"+str((i2+small-1))+e
-        else:
-            f=d+'_'+str((i2+small-1))+e
-        filename1=path+"\\\\"+f
-        img_array=loadFile(filename1)
-        a = np.matrix(img_array)
-        #a=haress(s2.get(),s3.get(),a)
-        if(first_x<second_x and first_y<second_y):
-            b=a[first_y:second_y,first_x:second_x]
-        if(second_x<first_x and first_y<second_y):
-            b=a[first_y:second_y,second_x:first_x]
-        if(second_x<first_x and second_y<first_y):
-            b=a[second_y:first_y,second_x:first_x]
-        if(first_x<second_x and second_y<first_y):
-            b=a[second_y:first_y,first_x:second_x]
-        maxqueue.append(b.max())
-        minqueue.append(b.min())
-        
-#        print(b.max())
-#        print(b.min())
-#    print ("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-    #print(max(maxqueue))
-    #print(min(minqueue))
-    maxValue=max(maxqueue)-100
-    minValue=min(minqueue)
-    ff=np.array(b1)
-    fff=(ff-minValue)/(maxValue-minValue)
-    #print(fff)
-    
-    im1=Image.fromarray(fff)
-    img = im1.resize((32,32))
-    fff=np.asarray(img)   
-    
-    
-    matrix = fff 
-    predict()
-
+#def getmaxandmin(filelist):#获取所选区域整个文件夹所有图片该区域的灰度最大最小值
+#    global second_x,second_y,first_x,first_y
+#    maxqueue=[]
+#    minqueue=[]
+#    b = np.matrix([])
+#    for i1 in range(0,len(filelist)):
+#        img_array=loadFile(filelist[i1])
+#        a = np.matrix(img_array)
+#        #a=haress(s2.get(),s3.get(),a)
+#        if(first_x<second_x and first_y<second_y):
+#            b=a[first_y:second_y,first_x:second_x]
+#        if(second_x<first_x and first_y<second_y):
+#            b=a[first_y:second_y,second_x:first_x]
+#        if(second_x<first_x and second_y<first_y):
+#            b=a[second_y:first_y,second_x:first_x]
+#        if(first_x<second_x and second_y<first_y):
+#            b=a[second_y:first_y,first_x:second_x]
+#        maxqueue.append(b.max())
+#        minqueue.append(b.min())
+#        maxValue=max(maxqueue)-100
+#        minValue=min(minqueue)
+#    return maxValue,minValue
+#
+#
+#def FindX(findlist,maxValue,minValue):#调整矩阵大小至选取的范围，归一化并压缩成32*32
+#    global second_x,second_y,first_x,first_y
+#    Matrix=[]
+#    fff=np.matrix([])
+#    b=np.matrix([])
+#    for ff1 in range(0,5):      
+#        img_array=loadFile(findlist[ff1])
+#        a=np.matrix(img_array)
+#        if(first_x<second_x and first_y<second_y):
+#            b=a[first_y:second_y,first_x:second_x]
+#        if(second_x<first_x and first_y<second_y):
+#            b=a[first_y:second_y,second_x:first_x]
+#        if(second_x<first_x and second_y<first_y):
+#            b=a[second_y:first_y,second_x:first_x]
+#        if(first_x<second_x and second_y<first_y):
+#            b=a[second_y:first_y,first_x:second_x]
+#        ff=np.matrix(b)   
+#        fff=(ff-minValue)/(maxValue-minValue)
+#        ffff=np.matrix(fff)
+#        
+#        
+#        im1=Image.fromarray(ffff)
+#        img = im1.resize((32,32))
+#        fff1=np.asarray(img)
+#        matrix = fff1
+#        
+#        
+#        Matrix.append(matrix)
+#    return Matrix
+#
+#def showtest(findlist):
+#    global second_x,second_y,first_x,first_y,l1,dicom1,root
+#    b=np.matrix([])
+#    img_array=loadFile(findlist[0])
+#    a=np.matrix(img_array)
+#    if(first_x<second_x and first_y<second_y):
+#        b=a[first_y:second_y,first_x:second_x]
+#    if(second_x<first_x and first_y<second_y):
+#        b=a[first_y:second_y,second_x:first_x]
+#    if(second_x<first_x and second_y<first_y):
+#        b=a[second_y:first_y,second_x:first_x]
+#    if(first_x<second_x and second_y<first_y):
+#        b=a[second_y:first_y,first_x:second_x]
+#    ff=np.matrix(b)
+##    fffffff1=ff.resize((32, 32))
+#    
+#    im1=Image.fromarray(ff)
+#    img = im1.resize((32,32))
+#    fff1=np.asarray(img)
+#    
+#    
+#    im=Image.fromarray(fff1)
+#    tkimg=ImageTk.PhotoImage(im)
+#    l1.delete("all")
+#    l1.create_image(256,256,image =tkimg)
+#    root.mainloop()
+#
+#
+#    
 #def curb():
-#    global existflag,second_x,second_y,l,first_x,first_y,filename,big,d,e,matrix
+#    global existflag,second_x,second_y,l,first_x,first_y,filename,i,big,d,e,matrix,i,small,path
 #    save3();
 #    maxqueue=[]
 #    minqueue=[]
-#    for i in range(1,big):
-#        if(i<10):
-#            f=d+"0"+str((i))+e
+#    fff=np.matrix([])
+#    img_array=loadFile(filename)#得到原始图像
+#    a = np.matrix(img_array)
+#
+#    if(first_x<second_x and first_y<second_y):
+#        b1=a[first_y:second_y,first_x:second_x]
+#    if(second_x<first_x and first_y<second_y):
+#        b1=a[first_y:second_y,second_x:first_x]
+#    if(second_x<first_x and second_y<first_y):
+#        b1=a[second_y:first_y,second_x:first_x]
+#    if(first_x<second_x and second_y<first_y):
+#        b1=a[second_y:first_y,first_x:second_x]
+#    
+#    
+#    for i2 in range(1,big+1):
+#        if(i2<10 and small==1 and smallflag==0):
+#            f=d+'_'+"0"+str((i2+small-1))+e
+#        elif(i2<10 and small==1 and smallflag==1):
+#            f=d+'_'+"00"+str((i2+small-1))+e
+#        elif((i2+small-1)<100 and  small==1 and smallflag==1):
+#            f=d+'_'+"0"+str((i2+small-1))+e
+#        elif((i2+small-1)<100 and small>1):
+#            f=d+'_'+"0"+str((i2+small-1))+e
 #        else:
-#            f=d+str((i))+e
+#            f=d+'_'+str((i2+small-1))+e
 #        filename1=path+"\\\\"+f
 #        img_array=loadFile(filename1)
 #        a = np.matrix(img_array)
@@ -548,203 +500,246 @@ def curb():
 #        maxqueue.append(b.max())
 #        minqueue.append(b.min())
 #        
-#    print ("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+##        print(b.max())
+##        print(b.min())
+##    print ("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 #    #print(max(maxqueue))
 #    #print(min(minqueue))
-#    maxValue=max(maxqueue)-500
+#    maxValue=max(maxqueue)-100
 #    minValue=min(minqueue)
-#    ff=np.array(b)
+#    ff=np.array(b1)
 #    fff=(ff-minValue)/(maxValue-minValue)
 #    #print(fff)
-#    im=Image.fromarray(fff)
-#    img = im.resize((32, 32))
-#    print ("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-#    matrix = np.asarray(img) 
-#    print(matrix)
-    
-def curb1():
-    global existflag,second_x,second_y,l,first_x,first_y,filename,i,big,d,e,m5,small,path
-    save3();
-    matrix1=[]
-    matrix2=[]
-    maxqueue=[]
-    minqueue=[]
-    for i1 in range(1,big+1):
-        if(i1<10 and small==1 and smallflag==0):
-            f=d+'_'+"0"+str((i1+small-1))+e
-        elif(i1<10 and small==1 and smallflag==1):
-            f=d+'_'+"00"+str((i1+small-1))+e
-        elif((i1+small-1)<100 and  small==1 and smallflag==1):
-            f=d+'_'+"0"+str((i1+small-1))+e
-        elif((i1+small-1)<100 and small>1):
-            f=d+'_'+"0"+str((i1+small-1))+e
-        else:
-            f=d+'_'+str((i1+small-1))+e
-        filename1=path+"\\\\"+f
-        img_array=loadFile(filename1)
-        a = np.matrix(img_array)
-        #a=haress(s2.get(),s3.get(),a)
-        if(first_x<second_x and first_y<second_y):
-            b=a[first_y:second_y,first_x:second_x]
-        if(second_x<first_x and first_y<second_y):
-            b=a[first_y:second_y,second_x:first_x]
-        if(second_x<first_x and second_y<first_y):
-            b=a[second_y:first_y,second_x:first_x]
-        if(first_x<second_x and second_y<first_y):
-            b=a[second_y:first_y,first_x:second_x]
-        maxqueue.append(b.max())
-        minqueue.append(b.min())
-    if(i>=2 and i<=(big-2)):
-        for i2 in range(i-2,i+3):
-            if(i2<10 and small==1 and smallflag==0):
-                f=d+'_'+"0"+str((i2+small-1))+e
-            elif(i2<10 and small==1 and smallflag==1):
-                f=d+'_'+"00"+str((i2+small-1))+e
-            elif((i2+small-1)<100 and  small==1 and smallflag==1):
-                f=d+'_'+"0"+str((i2+small-1))+e
-            elif((i2+small-1)<100 and small>1):
-                f=d+'_'+"0"+str((i2+small-1))+e
-            else:
-                f=d+'_'+str((i2+small-1))+e
-            filename1=path+"\\\\"+f
-            img_array=loadFile(filename1)
-            a = np.matrix(img_array)
-            #a=haress(s2.get(),s3.get(),a)
-            if(first_x<second_x and first_y<second_y):
-                b=a[first_y:second_y,first_x:second_x]
-            if(second_x<first_x and first_y<second_y):
-                b=a[first_y:second_y,second_x:first_x]
-            if(second_x<first_x and second_y<first_y):
-                b=a[second_y:first_y,second_x:first_x]
-            if(first_x<second_x and second_y<first_y):
-                b=a[second_y:first_y,first_x:second_x]
-            matrix1.append(b)
-
-    #print(max(maxqueue))
-    #print(min(minqueue))
-    maxValue=max(maxqueue)-100
-    minValue=min(minqueue)
-    fff=np.matrix([])
-    for ff1 in range(0,len(matrix1)):
-        ff=np.array(matrix1[ff1])
-        fff=(ff-minValue)/(maxValue-minValue)
-#        im=Image.fromarray(fff)
-#        img = im.resize((32, 32))    
-#        matrix = np.asarray(img)
+#    
+#    im1=Image.fromarray(fff)
+#    img = im1.resize((32,32))
+#    fff=np.asarray(img)   
+#    
+#    
+#    matrix = fff 
+#    predict()
+#
+##def curb():
+##    global existflag,second_x,second_y,l,first_x,first_y,filename,big,d,e,matrix
+##    save3();
+##    maxqueue=[]
+##    minqueue=[]
+##    for i in range(1,big):
+##        if(i<10):
+##            f=d+"0"+str((i))+e
+##        else:
+##            f=d+str((i))+e
+##        filename1=path+"\\\\"+f
+##        img_array=loadFile(filename1)
+##        a = np.matrix(img_array)
+##        #a=haress(s2.get(),s3.get(),a)
+##        if(first_x<second_x and first_y<second_y):
+##            b=a[first_y:second_y,first_x:second_x]
+##        if(second_x<first_x and first_y<second_y):
+##            b=a[first_y:second_y,second_x:first_x]
+##        if(second_x<first_x and second_y<first_y):
+##            b=a[second_y:first_y,second_x:first_x]
+##        if(first_x<second_x and second_y<first_y):
+##            b=a[second_y:first_y,first_x:second_x]
+##        maxqueue.append(b.max())
+##        minqueue.append(b.min())
+##        
+##    print ("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+##    #print(max(maxqueue))
+##    #print(min(minqueue))
+##    maxValue=max(maxqueue)-500
+##    minValue=min(minqueue)
+##    ff=np.array(b)
+##    fff=(ff-minValue)/(maxValue-minValue)
+##    #print(fff)
+##    im=Image.fromarray(fff)
+##    img = im.resize((32, 32))
+##    print ("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+##    matrix = np.asarray(img) 
+##    print(matrix)
+#    
+#def curb1():
+#    global existflag,second_x,second_y,l,first_x,first_y,filename,i,big,d,e,m5,small,path
+#    save3();
+#    matrix1=[]
+#    matrix2=[]
+#    maxqueue=[]
+#    minqueue=[]
+#    for i1 in range(1,big+1):
+#        if(i1<10 and small==1 and smallflag==0):
+#            f=d+'_'+"0"+str((i1+small-1))+e
+#        elif(i1<10 and small==1 and smallflag==1):
+#            f=d+'_'+"00"+str((i1+small-1))+e
+#        elif((i1+small-1)<100 and  small==1 and smallflag==1):
+#            f=d+'_'+"0"+str((i1+small-1))+e
+#        elif((i1+small-1)<100 and small>1):
+#            f=d+'_'+"0"+str((i1+small-1))+e
+#        else:
+#            f=d+'_'+str((i1+small-1))+e
+#        filename1=path+"\\\\"+f
+#        img_array=loadFile(filename1)
+#        a = np.matrix(img_array)
+#        #a=haress(s2.get(),s3.get(),a)
+#        if(first_x<second_x and first_y<second_y):
+#            b=a[first_y:second_y,first_x:second_x]
+#        if(second_x<first_x and first_y<second_y):
+#            b=a[first_y:second_y,second_x:first_x]
+#        if(second_x<first_x and second_y<first_y):
+#            b=a[second_y:first_y,second_x:first_x]
+#        if(first_x<second_x and second_y<first_y):
+#            b=a[second_y:first_y,first_x:second_x]
+#        maxqueue.append(b.max())
+#        minqueue.append(b.min())
+#    if(i>=2 and i<=(big-2)):
+#        for i2 in range(i-2,i+3):
+#            if(i2<10 and small==1 and smallflag==0):
+#                f=d+'_'+"0"+str((i2+small-1))+e
+#            elif(i2<10 and small==1 and smallflag==1):
+#                f=d+'_'+"00"+str((i2+small-1))+e
+#            elif((i2+small-1)<100 and  small==1 and smallflag==1):
+#                f=d+'_'+"0"+str((i2+small-1))+e
+#            elif((i2+small-1)<100 and small>1):
+#                f=d+'_'+"0"+str((i2+small-1))+e
+#            else:
+#                f=d+'_'+str((i2+small-1))+e
+#            filename1=path+"\\\\"+f
+#            img_array=loadFile(filename1)
+#            a = np.matrix(img_array)
+#            #a=haress(s2.get(),s3.get(),a)
+#            if(first_x<second_x and first_y<second_y):
+#                b=a[first_y:second_y,first_x:second_x]
+#            if(second_x<first_x and first_y<second_y):
+#                b=a[first_y:second_y,second_x:first_x]
+#            if(second_x<first_x and second_y<first_y):
+#                b=a[second_y:first_y,second_x:first_x]
+#            if(first_x<second_x and second_y<first_y):
+#                b=a[second_y:first_y,first_x:second_x]
+#            matrix1.append(b)
+#
+#    #print(max(maxqueue))
+#    #print(min(minqueue))
+#    maxValue=max(maxqueue)-100
+#    minValue=min(minqueue)
+#    fff=np.matrix([])
+#    for ff1 in range(0,len(matrix1)):
+#        ff=np.array(matrix1[ff1])
+#        fff=(ff-minValue)/(maxValue-minValue)
+##        im=Image.fromarray(fff)
+##        img = im.resize((32, 32))    
+##        matrix = np.asarray(img)
+##        matrix1[ff1]=matrix
+#        
+#        im1=Image.fromarray(fff)
+#        img = im1.resize((32,32))
+#        fff1=np.asarray(img)
+#        
+#        matrix = fff1
 #        matrix1[ff1]=matrix
-        
-        im1=Image.fromarray(fff)
-        img = im1.resize((32,32))
-        fff1=np.asarray(img)
-        
-        matrix = fff1
-        matrix1[ff1]=matrix
-
-    m0=np.matrix([])
-    m1=np.matrix([])
-    m2=np.matrix([])
-    m3=np.matrix([])
-    m4=np.matrix([])
-    m5=np.matrix([])
-    m0=matrix1[0]
-    m1=matrix1[1]
-    m2=matrix1[2]
-    m3=matrix1[3]
-    m4=matrix1[4]
-    m5=np.dstack((m0,m1))
-    m5=np.dstack((m5,m2))
-    m5=np.dstack((m5,m3))
-    m5=np.dstack((m5,m4))
-    predict3d()
-def predict():
-    global matrix,l1,dicom1,root
-    num_list=[]
-    base_model = model_from_json(open('A_1_architecture.json').read())  
-    base_model.load_weights('A_1_weights.h5')
-    pred_test = base_model.predict(matrix.reshape(1,32,32,1))
-    print (pred_test[0])   
-#    name_list = ['分化1','分化2','分化3']
-#    num_list = pred_test[0]
-#    plt.bar(range(len(num_list)), num_list,color='rgb',tick_label=name_list)
-    source_data = {'分化1': pred_test[0][0], '分化2': pred_test[0][1], '分化3': pred_test[0][2]}  # 设置原始数据
-
-    for a, b in source_data.items():
-        plt.text(a, b + 0.05, '%.3f' % b, ha='center', va='bottom', fontsize=11)  # ha 文字指定在柱体中间， va指定文字位置 fontsize指定文字体大小
-
-# 设置X轴Y轴数据，两者都可以是list或者tuple
-    x_axis = tuple(source_data.keys())
-    y_axis = tuple(source_data.values())
-    plt.bar(x_axis, y_axis, color='rgb')  # 如果不指定color，所有的柱体都会是一个颜色
-
-    plt.xlabel(u"分化种类")  # 指定x轴描述信息
-    plt.ylabel(u"概率值")  # 指定y轴描述信息
-    plt.title("肿瘤分化种类概率")  # 指定图表描述信息
-    plt.ylim(0, 1.19)  # 指定Y轴的高度
-    plt.savefig('scores_par.png')
-    plt.show()
-    my_img = Image.PhotoImage(file='scores_par.png')
-    l1.delete("all")
-    l1.create_image(256,256,image =my_img)
-    root.mainloop()
-
-
-def predict3d():
-    global l1,dicom1,root
-    base_model = model_from_json(open('F5_1_architecture.json').read())  
-    base_model.load_weights('F5_1_weights.h5')
-
-    pred_test = base_model.predict(m5.reshape(1,32,32,5,1))
-    print (pred_test[0])
-#    name_list = ['分化1','分化2','分化3']  
-#    num_list = pred_test[0]
-#    plt.bar(range(len(num_list)), num_list,color='rgb',tick_label=name_list)
-    source_data = {'分化1': pred_test[0][0], '分化2': pred_test[0][1], '分化3': pred_test[0][2]}  # 设置原始数据
-
-    for a, b in source_data.items():
-        plt.text(a, b + 0.05, '%.3f' % b, ha='center', va='bottom', fontsize=11)  # ha 文字指定在柱体中间， va指定文字位置 fontsize指定文字体大小
-
-# 设置X轴Y轴数据，两者都可以是list或者tuple
-    x_axis = tuple(source_data.keys())
-    y_axis = tuple(source_data.values())
-    plt.bar(x_axis, y_axis, color='rgb')  # 如果不指定color，所有的柱体都会是一个颜色
-
-    plt.xlabel(u"分化种类")  # 指定x轴描述信息
-    plt.ylabel(u"概率值")  # 指定y轴描述信息
-    plt.title("肿瘤分化种类概率")  # 指定图表描述信息
-    plt.ylim(0, 1.19)  # 指定Y轴的高度
-    
-    
-    
-    plt.savefig('scores_par.png')
-    plt.show()
-    my_img = Image.PhotoImage(file='scores_par.png')
-    l1.delete("all")
-    l1.create_image(256,256,image =my_img)
-    root.mainloop()
+#
+#    m0=np.matrix([])
+#    m1=np.matrix([])
+#    m2=np.matrix([])
+#    m3=np.matrix([])
+#    m4=np.matrix([])
+#    m5=np.matrix([])
+#    m0=matrix1[0]
+#    m1=matrix1[1]
+#    m2=matrix1[2]
+#    m3=matrix1[3]
+#    m4=matrix1[4]
+#    m5=np.dstack((m0,m1))
+#    m5=np.dstack((m5,m2))
+#    m5=np.dstack((m5,m3))
+#    m5=np.dstack((m5,m4))
+#    predict3d()
+#def predict(matrix1):
+#    matrix=np.matrix(matrix1)
+#    base_model = model_from_json(open('A_1_architecture.json').read())  
+#    base_model.load_weights('A_1_weights.h5')
+#    pred_test = base_model.predict(matrix.reshape(1,32,32,1))
+#    print (pred_test[0])   
+##    name_list = ['分化1','分化2','分化3']
+##    num_list = pred_test[0]
+##    plt.bar(range(len(num_list)), num_list,color='rgb',tick_label=name_list)
+#    source_data = {'分化1': pred_test[0][0], '分化2': pred_test[0][1], '分化3': pred_test[0][2]}  # 设置原始数据
+#
+#    for a, b in source_data.items():
+#        plt.text(a, b + 0.05, '%.3f' % b, ha='center', va='bottom', fontsize=11)  # ha 文字指定在柱体中间， va指定文字位置 fontsize指定文字体大小
+#
+## 设置X轴Y轴数据，两者都可以是list或者tuple
+#    x_axis = tuple(source_data.keys())
+#    y_axis = tuple(source_data.values())
+#    plt.bar(x_axis, y_axis, color='rgb')  # 如果不指定color，所有的柱体都会是一个颜色
+#
+#    plt.xlabel(u"分化种类")  # 指定x轴描述信息
+#    plt.ylabel(u"概率值")  # 指定y轴描述信息
+#    plt.title("肿瘤分化种类概率")  # 指定图表描述信息
+#    plt.ylim(0, 1.19)  # 指定Y轴的高度
+#    plt.savefig('scores_par.png')
+#    plt.show()
+#    my_img = Image.PhotoImage(file='scores_par.png')
+#    l1.delete("all")
+#    l1.create_image(256,256,image =my_img)
+#    root.mainloop()
+#
+#
+#def predict3d():
+#    global l1,dicom1,root
+#    base_model = model_from_json(open('F5_1_architecture.json').read())  
+#    base_model.load_weights('F5_1_weights.h5')
+#
+#    pred_test = base_model.predict(m5.reshape(1,32,32,5,1))
+#    print (pred_test[0])
+##    name_list = ['分化1','分化2','分化3']  
+##    num_list = pred_test[0]
+##    plt.bar(range(len(num_list)), num_list,color='rgb',tick_label=name_list)
+#    source_data = {'分化1': pred_test[0][0], '分化2': pred_test[0][1], '分化3': pred_test[0][2]}  # 设置原始数据
+#
+#    for a, b in source_data.items():
+#        plt.text(a, b + 0.05, '%.3f' % b, ha='center', va='bottom', fontsize=11)  # ha 文字指定在柱体中间， va指定文字位置 fontsize指定文字体大小
+#
+## 设置X轴Y轴数据，两者都可以是list或者tuple
+#    x_axis = tuple(source_data.keys())
+#    y_axis = tuple(source_data.values())
+#    plt.bar(x_axis, y_axis, color='rgb')  # 如果不指定color，所有的柱体都会是一个颜色
+#
+#    plt.xlabel(u"分化种类")  # 指定x轴描述信息
+#    plt.ylabel(u"概率值")  # 指定y轴描述信息
+#    plt.title("肿瘤分化种类概率")  # 指定图表描述信息
+#    plt.ylim(0, 1.19)  # 指定Y轴的高度
+#    
+#    
+#    
+#    plt.savefig('scores_par.png')
+#    plt.show()
+#    my_img = Image.PhotoImage(file='scores_par.png')
+#    l1.delete("all")
+#    l1.create_image(256,256,image =my_img)
+#    root.mainloop()
 def predict3dp():
-    global filename,l1,i,big,m10,m11,m12,m13,m14
+    global filename,l1,i,big,m10,m11,m12,m13,m14,path
     
 #    print(filename)
     
-    rule_name = r'^(.+)[E-I]'
-    compile_name = re.compile(rule_name, re.M)
-    res_name = compile_name.findall(filename)
-    #print (res_name[0])
-    filenameeum=[]
-    filenameeum.append(res_name[0]+'E 9-1')
-    filenameeum.append(res_name[0]+'F 9-2')
-    filenameeum.append(res_name[0]+'G 9-3')
-    filenameeum.append(res_name[0]+'H 9-4')
-    filenameeum.append(res_name[0]+'I 9-5')
-    
-    
-    rule_name = r'[E-I](.+)_'
-    compile_name = re.compile(rule_name, re.M)
-    res_name = compile_name.findall(filename)
-    rule_name = r'\\(.+)$'
-    compile_name = re.compile(rule_name, re.M)
-    res_name1 = compile_name.findall(res_name[0])
-    part1=res_name1[0]
+#    rule_name = r'^(.+)[E-I]'
+#    compile_name = re.compile(rule_name, re.M)
+#    res_name = compile_name.findall(filename)
+#    #print (res_name[0])
+#    filenameeum=[]
+#    filenameeum.append(res_name[0]+'E 9-1')
+#    filenameeum.append(res_name[0]+'F 9-2')
+#    filenameeum.append(res_name[0]+'G 9-3')
+#    filenameeum.append(res_name[0]+'H 9-4')
+#    filenameeum.append(res_name[0]+'I 9-5')
+#    
+#    
+#    rule_name = r'[E-I](.+)_'
+#    compile_name = re.compile(rule_name, re.M)
+#    res_name = compile_name.findall(filename)
+#    rule_name = r'\\(.+)$'
+#    compile_name = re.compile(rule_name, re.M)
+#    res_name1 = compile_name.findall(res_name[0])
+#    part1=res_name1[0]
     
 #    print (res_name1[0])
     findlist1=[]#储存选中的五张图片在EFGHI中的路径
@@ -758,79 +753,133 @@ def predict3dp():
     findlist8=[]
     findlist9=[]
     findlist10=[]
-    for i1 in range(i-2,i+3):
-        if(i1<10):
-            findlist1.append(filenameeum[0]+'\\'+part1+'_00'+str(i1)+'.dcm')
-        elif(i1>=10 and i1<100):
-            findlist1.append(filenameeum[0]+'\\'+part1+'_0'+str(i1)+'.dcm')
-        else:
-            findlist1.append(filenameeum[0]+'\\'+part1+'_'+str(i1)+'.dcm')
-    for i1 in range(i-2,i+3):
-        if(i1+big<10):
-            findlist2.append(filenameeum[1]+'\\'+part1+'_00'+str(i1+big)+'.dcm')
-        elif(i1+big>=10 and i1+big<100):
-            findlist2.append(filenameeum[1]+'\\'+part1+'_0'+str(i1+big)+'.dcm')
-        else:
-            findlist2.append(filenameeum[1]+'\\'+part1+'_'+str(i1+big)+'.dcm')
-    for i1 in range(i-2,i+3):
-        if(i1+big*2<10):
-            findlist3.append(filenameeum[2]+'\\'+part1+'_00'+str(i1+big*2)+'.dcm')
-        elif(i1+big*2>=10 and i1+big*2<100):
-            findlist3.append(filenameeum[2]+'\\'+part1+'_0'+str(i1+big*2)+'.dcm')
-        else:
-            findlist3.append(filenameeum[2]+'\\'+part1+'_'+str(i1+big*2)+'.dcm')
-    for i1 in range(i-2,i+3):
-        if(i1+big*3<10):
-            findlist4.append(filenameeum[3]+'\\'+part1+'_00'+str(i1+big*3)+'.dcm')
-        elif(i1+big*3>=10 and i1+big*3<100):
-            findlist4.append(filenameeum[3]+'\\'+part1+'_0'+str(i1+big*3)+'.dcm')
-        else:
-            findlist4.append(filenameeum[3]+'\\'+part1+'_'+str(i1+big*3)+'.dcm')
-    for i1 in range(i-2,i+3):
-        if(i1+big*4<10):
-            findlist5.append(filenameeum[4]+'\\'+part1+'_00'+str(i1+big*4)+'.dcm')
-        elif(i1+big*4>=10 and i1+big*4<100):
-            findlist5.append(filenameeum[4]+'\\'+part1+'_0'+str(i1+big*4)+'.dcm')
-        else:
-            findlist5.append(filenameeum[4]+'\\'+part1+'_'+str(i1+big*4)+'.dcm')
-           
+#    for i1 in range(i-2,i+3):
+#        if(i1<10):
+#            findlist1.append(filenameeum[0]+'\\'+part1+'_00'+str(i1)+'.dcm')
+#        elif(i1>=10 and i1<100):
+#            findlist1.append(filenameeum[0]+'\\'+part1+'_0'+str(i1)+'.dcm')
+#        else:
+#            findlist1.append(filenameeum[0]+'\\'+part1+'_'+str(i1)+'.dcm')
+#    for i1 in range(i-2,i+3):
+#        if(i1+big<10):
+#            findlist2.append(filenameeum[1]+'\\'+part1+'_00'+str(i1+big)+'.dcm')
+#        elif(i1+big>=10 and i1+big<100):
+#            findlist2.append(filenameeum[1]+'\\'+part1+'_0'+str(i1+big)+'.dcm')
+#        else:
+#            findlist2.append(filenameeum[1]+'\\'+part1+'_'+str(i1+big)+'.dcm')
+#    for i1 in range(i-2,i+3):
+#        if(i1+big*2<10):
+#            findlist3.append(filenameeum[2]+'\\'+part1+'_00'+str(i1+big*2)+'.dcm')
+#        elif(i1+big*2>=10 and i1+big*2<100):
+#            findlist3.append(filenameeum[2]+'\\'+part1+'_0'+str(i1+big*2)+'.dcm')
+#        else:
+#            findlist3.append(filenameeum[2]+'\\'+part1+'_'+str(i1+big*2)+'.dcm')
+#    for i1 in range(i-2,i+3):
+#        if(i1+big*3<10):
+#            findlist4.append(filenameeum[3]+'\\'+part1+'_00'+str(i1+big*3)+'.dcm')
+#        elif(i1+big*3>=10 and i1+big*3<100):
+#            findlist4.append(filenameeum[3]+'\\'+part1+'_0'+str(i1+big*3)+'.dcm')
+#        else:
+#            findlist4.append(filenameeum[3]+'\\'+part1+'_'+str(i1+big*3)+'.dcm')
+#    for i1 in range(i-2,i+3):
+#        if(i1+big*4<10):
+#            findlist5.append(filenameeum[4]+'\\'+part1+'_00'+str(i1+big*4)+'.dcm')
+#        elif(i1+big*4>=10 and i1+big*4<100):
+#            findlist5.append(filenameeum[4]+'\\'+part1+'_0'+str(i1+big*4)+'.dcm')
+#        else:
+#            findlist5.append(filenameeum[4]+'\\'+part1+'_'+str(i1+big*4)+'.dcm')
+    
+    parent_path=os.path.dirname(path)
+    lll=os.listdir(parent_path)
+    for i7 in lll:
+        n3,ext=os.path.splitext(i7)
+        if n3.find('E')>=0:#寻找文件夹中含特定字符的文件夹名
+            path1=parent_path+'/'+i7
+            result00=os.listdir(path1)
+            resulttemp00=[]
+            for element00 in result00:
+                element00=path1+'/'+element00
+                resulttemp00.append(element00)
+            findlist6=resulttemp00
+            for v in range(5,10):
+                findlist1.append(resulttemp00[v])
+        if n3.find('F')>=0:#寻找文件夹中含特定字符的文件夹名
+            path1=parent_path+'/'+i7
+            result00=os.listdir(path1)
+            resulttemp00=[]
+            for element00 in result00:
+                element00=path1+'/'+element00
+                resulttemp00.append(element00)
+            findlist7=resulttemp00
+            for v in range(5,10):
+                findlist2.append(resulttemp00[v])
+        if n3.find('G')>=0:#寻找文件夹中含特定字符的文件夹名
+            path1=parent_path+'/'+i7
+            result00=os.listdir(path1)
+            resulttemp00=[]
+            for element00 in result00:
+                element00=path1+'/'+element00
+                resulttemp00.append(element00)
+            findlist8=resulttemp00
+            for v in range(5,10):
+                findlist3.append(resulttemp00[v])
+        if n3.find('H')>=0:#寻找文件夹中含特定字符的文件夹名
+            path1=parent_path+'/'+i7
+            result00=os.listdir(path1)
+            resulttemp00=[]
+            for element00 in result00:
+                element00=path1+'/'+element00
+                resulttemp00.append(element00)
+            findlist9=resulttemp00
+            for v in range(5,10):
+                findlist4.append(resulttemp00[v])
+        if n3.find('I')>=0:#寻找文件夹中含特定字符的文件夹名
+            path1=parent_path+'/'+i7
+            result00=os.listdir(path1)
+            resulttemp00=[]
+            for element00 in result00:
+                element00=path1+'/'+element00
+                resulttemp00.append(element00)
+            findlist10=resulttemp00
+            for v in range(5,10):
+                findlist5.append(resulttemp00[v])
 
 
-    for i1 in range(1,big+1):
-        if(i1<10):
-            findlist6.append(filenameeum[0]+'\\'+part1+'_00'+str(i1)+'.dcm')
-        elif(i1>=10 and i1<100):
-            findlist6.append(filenameeum[0]+'\\'+part1+'_0'+str(i1)+'.dcm')
-        else:
-            findlist6.append(filenameeum[0]+'\\'+part1+'_'+str(i1)+'.dcm')
-    for i1 in range(1,big+1):
-        if(i1+big<10):
-            findlist7.append(filenameeum[1]+'\\'+part1+'_00'+str(i1+big)+'.dcm')
-        elif(i1+big>=10 and i1+big<100):
-            findlist7.append(filenameeum[1]+'\\'+part1+'_0'+str(i1+big)+'.dcm')
-        else:
-            findlist7.append(filenameeum[1]+'\\'+part1+'_'+str(i1+big)+'.dcm')
-    for i1 in range(1,big+1):
-        if(i1+big*2<10):
-            findlist8.append(filenameeum[2]+'\\'+part1+'_00'+str(i1+big*2)+'.dcm')
-        elif(i1+big*2>=10 and i1+big*2<100):
-            findlist8.append(filenameeum[2]+'\\'+part1+'_0'+str(i1+big*2)+'.dcm')
-        else:
-            findlist8.append(filenameeum[2]+'\\'+part1+'_'+str(i1+big*2)+'.dcm')
-    for i1 in range(1,big+1):
-        if(i1+big*3<10):
-            findlist9.append(filenameeum[3]+'\\'+part1+'_00'+str(i1+big*3)+'.dcm')
-        elif(i1+big*3>=10 and i1+big*3<100):
-            findlist9.append(filenameeum[3]+'\\'+part1+'_0'+str(i1+big*3)+'.dcm')
-        else:
-            findlist9.append(filenameeum[3]+'\\'+part1+'_'+str(i1+big*3)+'.dcm')
-    for i1 in range(1,big+1):
-        if(i1+big*4<10):
-            findlist10.append(filenameeum[4]+'\\'+part1+'_00'+str(i1+big*4)+'.dcm')
-        elif(i1+big*4>=10 and i1+big*4<100):
-            findlist10.append(filenameeum[4]+'\\'+part1+'_0'+str(i1+big*4)+'.dcm')
-        else:
-            findlist10.append(filenameeum[4]+'\\'+part1+'_'+str(i1+big*4)+'.dcm') 
+#    for i1 in range(1,big+1):
+#        if(i1<10):
+#            findlist6.append(filenameeum[0]+'\\'+part1+'_00'+str(i1)+'.dcm')
+#        elif(i1>=10 and i1<100):
+#            findlist6.append(filenameeum[0]+'\\'+part1+'_0'+str(i1)+'.dcm')
+#        else:
+#            findlist6.append(filenameeum[0]+'\\'+part1+'_'+str(i1)+'.dcm')
+#    for i1 in range(1,big+1):
+#        if(i1+big<10):
+#            findlist7.append(filenameeum[1]+'\\'+part1+'_00'+str(i1+big)+'.dcm')
+#        elif(i1+big>=10 and i1+big<100):
+#            findlist7.append(filenameeum[1]+'\\'+part1+'_0'+str(i1+big)+'.dcm')
+#        else:
+#            findlist7.append(filenameeum[1]+'\\'+part1+'_'+str(i1+big)+'.dcm')
+#    for i1 in range(1,big+1):
+#        if(i1+big*2<10):
+#            findlist8.append(filenameeum[2]+'\\'+part1+'_00'+str(i1+big*2)+'.dcm')
+#        elif(i1+big*2>=10 and i1+big*2<100):
+#            findlist8.append(filenameeum[2]+'\\'+part1+'_0'+str(i1+big*2)+'.dcm')
+#        else:
+#            findlist8.append(filenameeum[2]+'\\'+part1+'_'+str(i1+big*2)+'.dcm')
+#    for i1 in range(1,big+1):
+#        if(i1+big*3<10):
+#            findlist9.append(filenameeum[3]+'\\'+part1+'_00'+str(i1+big*3)+'.dcm')
+#        elif(i1+big*3>=10 and i1+big*3<100):
+#            findlist9.append(filenameeum[3]+'\\'+part1+'_0'+str(i1+big*3)+'.dcm')
+#        else:
+#            findlist9.append(filenameeum[3]+'\\'+part1+'_'+str(i1+big*3)+'.dcm')
+#    for i1 in range(1,big+1):
+#        if(i1+big*4<10):
+#            findlist10.append(filenameeum[4]+'\\'+part1+'_00'+str(i1+big*4)+'.dcm')
+#        elif(i1+big*4>=10 and i1+big*4<100):
+#            findlist10.append(filenameeum[4]+'\\'+part1+'_0'+str(i1+big*4)+'.dcm')
+#        else:
+#            findlist10.append(filenameeum[4]+'\\'+part1+'_'+str(i1+big*4)+'.dcm') 
     
     maxValue=int()
     minValue=int()
@@ -972,6 +1021,7 @@ def predict3():
     numlist=[]
     numlist=np.stack(num_list,axis=4)
     
+    print("wwwwwwwww!!!!!!!!!!!!!!!!!!!!!!!!!!")
 #    model = model_from_json(open('C:\\Users\\85436\\Desktop\\毕设\\keras\\Keras\\pre\\fusion_model_三分类\\[\'E5\', \'F5\', \'G5\', \'H5\', \'I5\']concat_1_architecture.json').read())  
 #    model.load_weights('C:\\Users\\85436\\Desktop\\毕设\\keras\\Keras\\pre\\fusion_model_三分类\\[\'E5\', \'F5\', \'G5\', \'H5\', \'I5\']concat_1_weights.h5')
     model = model_from_json(open('[\'E5\', \'F5\', \'G5\', \'H5\', \'I5\']_1_architecture.json').read())  
@@ -1038,18 +1088,12 @@ def predict3():
 #    l1.create_image(80,80,image =my_img2)
     root.mainloop()
 #    
-    
-           
-#    img_array=loadFile(findlist1[0])
-#    a = np.matrix(img_array)
-#    a=haress(s2.get(),s3.get(),a)
-#    im=Image.fromarray(a)
-#    tkimg=ImageTk.PhotoImage(im)
-#    l1.delete("all")
-#    l1.create_image(256,256,image =tkimg)
-#    root.mainloop()
-            
-            
+def hehe():
+    global filename,i,big,m10,m11,m12,m13,m14,path,second_x,second_y,first_x,first_y
+    predict22(filename,i,big,m10,m11,m12,m13,m14,path,second_x,second_y,first_x,first_y)
+def hehe2():
+    global filename,i,big,m10,m11,m12,m13,m14,path,second_x,second_y,first_x,first_y
+    predict33(filename,i,big,m10,m11,m12,m13,m14,path,second_x,second_y,first_x,first_y)
 s2 = tk.Scale(root,
       from_ = 10,#设置最小值
       to = 40950,#设置最大值
@@ -1071,6 +1115,7 @@ s3 = tk.Scale(root,
       command=change)#绑定变量
 s3.grid(row=0,column=2) 
 
+
 l = tk.Canvas(root,width = 512, height = 512,bg = 'white')
 
 l.bind("<MouseWheel>", processWheel)
@@ -1084,28 +1129,25 @@ l.grid(row=0,column=1)
 
 
 b1 = tk.Button(root, text='清除',width=12,command=delete)
-b2 = tk.Button(root, text='截取',width=12,command=cut)
+#b2 = tk.Button(root, text='截取',width=12,command=cut)
 b3 = tk.Button(root, text='肿瘤起始坐标',width=12,command=save1)
 b4 = tk.Button(root, text='肿瘤终止坐标',width=12,command=save2)
 b5 = tk.Button(root, text='肿瘤截面范围',width=12,command=save3)
 b6 = tk.Button(root, text='记录',width=12,command=settle)
 b7 = tk.Button(root, text='读取',width=12,command=get)
-b8 = tk.Button(root, text='2d预测',width=12,command=curb)
-b9 = tk.Button(root, text='3d预测',width=12,command=curb1)
-b10 = tk.Button(root, text='二分类',width=12,command=predict2)
-b11 = tk.Button(root, text='三分类',width=12,command=predict3)
 
 b7.grid(row=0,column=0,sticky='N') 
+b10 = tk.Button(root, text='二分类',width=12,command=hehe)
+b11 = tk.Button(root, text='三分类',width=12,command=hehe2)
 b1.place(x = 0, y = 40)
-b2.place(x = 0, y = 80)
+#b2.place(x = 0, y = 80)
 b3.place(x = 0, y = 120)
 b4.place(x = 0, y = 160)
 b5.place(x = 0, y = 200)
 b6.place(x = 0, y = 240)
-#b8.place(x = 0, y = 280)
-#b9.place(x = 0, y = 320)
 b10.place(x = 0, y = 360)
 b11.place(x = 0, y = 400)
+
 
 l3 = tk.Label(root, text="分化程度：")
 l3.place(x = 10, y = 280)
@@ -1115,3 +1157,61 @@ loop_text.set(" ")
 loop.place(x = 5, y = 300)
 
 root.mainloop()
+    
+    
+def welcome2():
+    global b99,b122
+    b99.destroy()
+    b122.destroy()
+    s2 = tk.Scale(root,
+          from_ = 10,#设置最小值
+          to = 40950,#设置最大值
+          orient = tk.HORIZONTAL,#设置横向
+          resolution=5,#设置步长
+          tickinterval = 5000,#设置刻度
+          length = 500,# 设置像素
+          variable = ww1,
+          command=change)#绑定变
+    s2.grid(row=1,column=1)
+    
+    s3 = tk.Scale(root,
+          from_ = 20,#设置最小值
+          to = 40950,#设置最大值
+          resolution=5,#设置步长
+          tickinterval = 5000,#设置刻度
+          length = 500,# 设置像素
+          variable = wc1,
+          command=change)#绑定变量
+    s3.grid(row=0,column=2) 
+    
+    
+    l = tk.Canvas(root,width = 512, height = 512,bg = 'white')
+    
+    l.bind("<MouseWheel>", processWheel)
+    
+    rect=l.create_rectangle(first_x, first_y, second_x, second_y)
+    l.bind("<Button-1>",first)
+    l.bind("<B1-Motion>",second)
+    l.bind("<ButtonRelease-1>",final)
+    l.grid(row=0,column=1)
+    
+    
+    
+    b10 = tk.Button(root, text='二分类',width=12,command=predict2)
+    b11 = tk.Button(root, text='三分类',width=12,command=predict3)
+    b10.grid(row=0,column=0,sticky='N') 
+    #b2.place(x = 0, y = 80)
+    b11.place(x = 0, y = 40)
+
+#    b10.place(x = 0, y = 360)
+#    b11.place(x = 0, y = 400)
+    
+
+    
+    root.mainloop()
+
+#b99 = tk.Button(root, text='清除',width=12,command=welcome)
+#b122 = tk.Button(root, text='清除',width=12,command=welcome2)
+#b99.place(x = 0, y = 0)
+#b122.place(x = 0, y = 30)
+#root.mainloop()
